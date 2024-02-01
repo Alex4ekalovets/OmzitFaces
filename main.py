@@ -9,22 +9,23 @@ import pickle
 import cv2
 import os
 
+from utils.common import list_full_paths
 
-# в директории Images хранятся папки со всеми изображениями
+
 def foo():
-    imagePaths = list(paths.list_images('Images'))
-    knownEncodings = []
-    knownNames = []
-    for (i, imagePath) in enumerate(imagePaths):
+    image_paths = list(paths.list_images('data/faces'))
+    known_encodings = []
+    known_names = []
+    for (i, imagePath) in enumerate(image_paths):
         name = imagePath.split(os.path.sep)[-2]
         image = cv2.imread(imagePath)
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         boxes = face_recognition.face_locations(rgb, model='hog')
         encodings = face_recognition.face_encodings(rgb, boxes)
         for encoding in encodings:
-            knownEncodings.append(encoding)
-            knownNames.append(name)
-    data = {"encodings": knownEncodings, "names": knownNames}
+            known_encodings.append(encoding)
+            known_names.append(name)
+    data = {"encodings": known_encodings, "names": known_names}
     f = open("face_enc", "wb")
     f.write(pickle.dumps(data))
     f.close()
@@ -51,7 +52,7 @@ class OCR:
     def ocr(self):
         try:
             while not self.stopped:
-                self.data = pickle.loads(open('face_enc', "rb").read())
+                self.data = pickle.loads(open('data/face_enc', "rb").read())
                 if self.exchange is not None:
                     frame = self.exchange.frame
                     if self.exchange.ret:
@@ -78,8 +79,8 @@ class OCR:
                                 if face_location not in ((1258, 2286, 1332, 2211),):
                                     if name == "Unknown":
                                         folder_name = f"{current_time.strftime('%Y.%m.%d %H-%M-%S-%f')}"
-                                        if not os.path.exists(fr"D:\Projects\pythonProject\FaceDetector\Images\{folder_name}"):
-                                            os.mkdir(fr"D:\Projects\pythonProject\FaceDetector\Images\{folder_name}")
+                                        if not os.path.exists(fr"data/faces\{folder_name}"):
+                                            os.mkdir(fr"data/faces\{folder_name}")
 
                                         top, right, bottom, left = face_location
 
@@ -88,7 +89,7 @@ class OCR:
                                         face_img = rgb[top - 20:bottom + 20, left - 20:right + 20]
                                         img = Image.fromarray(face_img)
                                         img.save(
-                                            fr"D:\Projects\pythonProject\FaceDetector\Images\{folder_name}\{int(round(current_time.timestamp()))}.jpg")
+                                            fr"data\images\{folder_name}\{int(round(current_time.timestamp()))}.jpg")
                                     elif name == "ChekalovetsAV":
                                         top, right, bottom, left = face_location
 
@@ -97,7 +98,7 @@ class OCR:
                                         face_img = rgb[top - 20:bottom + 20, left - 20:right + 20]
                                         img = Image.fromarray(face_img)
                                         img.save(
-                                            fr"D:\Projects\pythonProject\FaceDetector\Images\{name}\{int(round(current_time.timestamp()))}.jpg")
+                                            fr"data\images\{name}\{int(round(current_time.timestamp()))}.jpg")
 
                             if name == "Unknown":
                                 foo()
@@ -139,7 +140,7 @@ class VideoStream:
 
     def take_screenshot(self):
         print(f'Screenshot {self.count}')
-        cv2.imwrite(fr"D:\Projects\pythonProject\FaceDetector\Images\ChekalovetsAV\{self.count}.jpg", self.frame)
+        cv2.imwrite(fr"data\imagesChekalovetsAV\{self.count}.jpg", self.frame)
         self.count += 1
 
     def get_video_dimensions(self):
@@ -158,7 +159,9 @@ def stop_stream_ocr(stream, ocr):
 
 if __name__ == "__main__":
     foo()
-    exchange = VideoStream(r'D:\Projects\pythonProject\FaceDetector\01_20231218_114201.avi').start()  # "rtsp://admin01:Epass1@192.168.9.15:554"  D:\Projects\pythonProject\FaceDetector\01_20231215_103650.avi
+    video_files = list_full_paths('data/video')
+    print(video_files)
+    exchange = VideoStream(video_files[1]).start()  # "rtsp://admin01:Epass1@192.168.9.15:554"  D:\Projects\pythonProject\FaceDetector\01_20231215_103650.avi
     ocr = OCR().start()
     ocr.set_exchange(exchange)
 
