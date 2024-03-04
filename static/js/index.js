@@ -12,16 +12,16 @@ async function getSources () {
     let sources_url = new URL(`sources`, baseUrl)
     let sources_response = await fetch(sources_url);
     if (sources_response.ok) {
-      let sources = await sources_response.json();
-      for (let i = 0; i < sources.length; i++){
-            var opt = document.createElement('option');
-            opt.value = sources[i];
-            opt.innerHTML = sources[i];
-            if (i == 0) {
-               opt.selected = true
-            }
-            sourceSelect.appendChild(opt);
-      }
+          let sources = await sources_response.json();
+          for (let i = 0; i < sources.length; i++){
+                var opt = document.createElement('option');
+                opt.value = sources[i];
+                opt.innerHTML = sources[i];
+                if (i == 0) {
+                   opt.selected = true
+                }
+                sourceSelect.appendChild(opt);
+          }
 
     } else {
       alert("HTTP error: " + sources_response.status);
@@ -29,12 +29,10 @@ async function getSources () {
 }
 
 async function postData(url = '', data = {}) {
-//    const csrfToken = '{{ csrf_token }}';
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-    //        'X-CSRFToken': csrfToken,
         },
         body: JSON.stringify(data)
     });
@@ -44,6 +42,23 @@ async function postData(url = '', data = {}) {
 document.addEventListener("DOMContentLoaded", (event) => {
     getSources()
 });
+
+
+
+document.getElementById('playVideo').onclick = async function () {
+    let settings_url = new URL(`play_video/${sourceSelect.value}`, baseUrl)
+    let response = await fetch(settings_url);
+    if (response.ok) {
+        alert("Video started");
+    }
+}
+document.getElementById('stopVideo').onclick = async function () {
+    let settings_url = new URL(`stop_video/${sourceSelect.value}`, baseUrl)
+    let response = await fetch(settings_url);
+    if (response.ok) {
+        alert("Video stopped");
+    }
+}
 
 document.getElementById('saveSettingsBtn').onclick = function () {
     let settings_save_url = new URL(`video_settings/${sourceSelect.value}`, baseUrl)
